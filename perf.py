@@ -46,18 +46,13 @@ def call_api(api_url):
     return stopwatch.elapsed_time
 
 
-def run_experiments(api_url, runs, exp):
-    stats = []
-
-    for e in range(exp):
-        measures = []
-        for i in range(runs):
-            print(f"running experiment {e} [run {i} of {runs}]...")
-            measures.append(call_api(api_url))
-            time.sleep(default_interval)
-        return measures[1:]
-
-    return stats
+def run_experiments(api_url, runs):
+    measures = []
+    for i in range(runs):
+        print(f"running experiment [run {i} of {runs}]...")
+        measures.append(call_api(api_url))
+        time.sleep(default_interval)
+    return measures[1:]
 
 
 def save_stats(filename, measures):
@@ -89,19 +84,13 @@ def main():
 
     parser.add_argument(
         '--url',
-        help='target url',
+        help='target message API url',
         default=default_api_url
     )
 
     parser.add_argument(
-        '--exp',
-        help='how many experiments should run',
-        default=default_exp
-    )
-
-    parser.add_argument(
         '--runs',
-        help='how many measurements should be done by experiment',
+        help='how many experiments should run',
         default=default_runs
     )
 
@@ -111,19 +100,12 @@ def main():
         default=default_output_file
     )
 
-    parser.add_argument(
-        '--simple',
-        help='simple experiment',
-        default=False
-    )
-
     url_arg = parser.parse_args().url
     output_file = parser.parse_args().output
     runs = parser.parse_args().runs
-    exp = parser.parse_args().exp
 
     try:
-        measures = run_experiments(url_arg, runs, exp)
+        measures = run_experiments(url_arg, runs)
         save_stats(output_file, measures)
 
         print("Process completed")
