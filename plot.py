@@ -5,7 +5,7 @@ import pandas as pd
 class MeasureDataFrames:
 
     def __init__(self):
-        folder = "results-2"
+        folder = "results"
         self.df_sync_single_vm = pd.read_csv(f"./{folder}/sync-measures-single-vm.csv")
         self.df_async_single_vm = pd.read_csv(f"./{folder}/async-measures-single-vm.csv")
         self.df_sync_diff_vm = pd.read_csv(f"./{folder}/sync-measures-diff-vm.csv")
@@ -20,12 +20,12 @@ class MeasureDataFrames:
         self.plot_async(axes)
 
     def box(self):
-        self.box_sync()
+        self.box_plot()
 
     def show(self):
         plt.show()
 
-    def box_sync(self):
+    def box_plot(self):
         self.df_merge.boxplot(
             by='experiment-type',
             column=['elapsed_time'],
@@ -35,14 +35,14 @@ class MeasureDataFrames:
     def plot_sync(self, axes=plt.gca()):
         self.df_sync_single_vm.rolling(3, win_type='gaussian').mean(std=1).plot(
             kind='line',
-            y='mean',
+            y='elapsed_time',
             label='sync-single-vm',
             ax=axes
         )
 
         self.df_sync_diff_vm.rolling(3, win_type='gaussian').mean(std=1).plot(
             kind='line',
-            y='mean',
+            y='elapsed_time',
             ax=axes,
             label='sync-diff-vm',
             title='Total request time per experiment',
@@ -52,44 +52,22 @@ class MeasureDataFrames:
     def plot_async(self, axes=plt.gca()):
         self.df_async_single_vm.rolling(3, win_type='gaussian').mean(std=1).plot(
             kind='line',
-            y='mean',
+            y='elapsed_time',
             label='async-single-vm',
             ax=axes
         )
 
         self.df_async_diff_vm.rolling(3, win_type='gaussian').mean(std=1).plot(
             kind='line',
-            y='mean',
+            y='elapsed_time',
             ax=axes,
             label='async-diff-vm',
             title='Total request time per experiment',
             ylabel='total time (ms)',
         )
 
-    def plot_new_sync(self, axes=plt.gca(), plot_ci=False):
-        self.new_sync.plot(
-            kind='line',
-            x='i',
-            y='mean',
-            label='async-single-vm',
-            ax=axes
-        )
-
-        if plot_ci:
-            x = self.new_sync["i"].tolist()
-            y = self.new_sync["mean"].tolist()
-            ci = self.new_sync["ci"].tolist()
-
-            y_plus = []
-            y_minus = []
-            for i in range(len(y)):
-                y_plus.append(y[i] + ci[i])
-                y_minus.append(y[i] - ci[i])
-
-            axes.fill_between(x, y_minus, y_plus, color='b', alpha=.1)
-
 
 if __name__ == "__main__":
     measures = MeasureDataFrames()
-    measures.box()
+    measures.plot()
     measures.show()

@@ -1,26 +1,13 @@
 import argparse
-import requests
 import time
-import numpy as np
+
+import requests
 
 default_output_file = "measures.csv"
 default_api_url = "http://localhost:9086/api/chats/messages"
 default_runs = 101
 default_exp = 101
 default_interval = 0
-
-
-class PerfStats:
-
-    def __init__(self, index, measures):
-        self.samples = 1.0 * np.array(measures)
-        self.mean = np.mean(self.samples)
-        self.std = np.std(self.samples)
-        self.ci = 1.96 * (self.std / np.sqrt(len(self.samples)))
-        self.index = index
-
-    def __str__(self):
-        return f"{self.index},{self.mean},{self.std},{self.ci}"
 
 
 class Stopwatch:
@@ -59,7 +46,7 @@ def call_api(api_url):
     return stopwatch.elapsed_time
 
 
-def run_experiments(api_url, runs, exp, simple):
+def run_experiments(api_url, runs, exp):
     stats = []
 
     for e in range(exp):
@@ -68,25 +55,19 @@ def run_experiments(api_url, runs, exp, simple):
             print(f"running experiment {e} [run {i} of {runs}]...")
             measures.append(call_api(api_url))
             time.sleep(default_interval)
-        if simple:
-            return measures[1:]
-
-        stats.append(PerfStats(e, measures[1:]))
+        return measures[1:]
 
     return stats
 
 
-def save_stats(filename, measures, simple):
+def save_stats(filename, measures):
     print(f"writing stats in file: {filename}")
 
     with open(filename, 'w') as file:
-        file.write("i,mean,std,ci\n")
+        file.write("i,elapsed_time\n")
 
         for index, m in enumerate(measures):
-            if simple:
-                file.write(f"{index},{m}\n")
-            else:
-                file.write(f"{m}\n")
+            file.write(f"{index},{m}\n")
 
     print("finished writing file")
 
@@ -140,11 +121,10 @@ def main():
     output_file = parser.parse_args().output
     runs = parser.parse_args().runs
     exp = parser.parse_args().exp
-    simple = bool(parser.parse_args().simple)
 
     try:
-        measures = run_experiments(url_arg, runs, exp, simple)
-        save_stats(output_file, measures, simple)
+        measures = run_experiments(url_arg, runs, exp)
+        save_stats(output_file, measures)
 
         print("Process completed")
     except Exception as e:
